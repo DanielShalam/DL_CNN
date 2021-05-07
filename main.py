@@ -2,9 +2,11 @@ import gtsrb_dataset as dataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import torch
+import model
 
 if __name__ == '__main__':
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # create transformations, include resize 30x30x3
     transform = transforms.Compose([
         transforms.Resize((30, 30)),
@@ -24,8 +26,10 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True, num_workers=4)
     val_loader = DataLoader(validation_set, batch_size=64, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_set, batch_size=64, shuffle=False, num_workers=4)
+    model.train_model([train_loader, val_loader, test_loader], device)
 
-    cross_entropy_loss = torch.nn.CrossEntropyLoss()
+
+
 
 
 

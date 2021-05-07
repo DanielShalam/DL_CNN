@@ -5,7 +5,7 @@ from PIL import Image
 import torchvision
 import torch.utils.data as data
 
-
+# for test set
 class GTSRB(Dataset):
     def __init__(self, root_dir, csv_path, transform=None):
         # load csv files
@@ -27,7 +27,7 @@ class GTSRB(Dataset):
 
         return img, label
 
-
+# for train validation set
 def load_train_val(train_path, val_pct, transform):
     """ load train validation images using ImageFolder """
     # load train test
