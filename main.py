@@ -1,12 +1,16 @@
 import gtsrb_dataset as dataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
 import torch
+import numpy as np
 import model
 
 if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    validation_split = 0.1
+
     # create transformations, include resize 30x30x3
     transform = transforms.Compose([
         transforms.Resize((30, 30)),
@@ -15,16 +19,28 @@ if __name__ == '__main__':
                              (0.2724, 0.2608, 0.2669))
     ])
 
-    # build train val
-    train_set, validation_set = dataset.load_train_val('data/Train', val_pct=10, transform=transform)
-    print(f"Train size: {len(train_set)}, Validation size: {len(validation_set)}")
+    # build iterator for train and test set
+    train_set = dataset.CostumeGTSRB(root_dir='data', csv_path='Train.csv', transform=transform, train=True)
+    test_set = dataset.CostumeGTSRB(root_dir='data', csv_path='Test.csv', transform=transform, train=False)
 
-    # build iterator for test set
-    test_set = dataset.GTSRB(root_dir='data', csv_path='Test.csv', transform=transform)
+    # train validation split
+    # Creating data indices for training and validation splits:
+    dataset_size = len(train_set)
+    indices = np.arange(dataset_size)
+    split = int(np.floor(validation_split * dataset_size))
+    # shuffle data
+    np.random.seed(42)
+    np.random.shuffle(indices)
+
+    train_indices, val_indices = indices[split:], indices[:split]
+
+    # Creating PT data samplers and loaders:
+    train_sampler = SubsetRandomSampler(train_indices)
+    val_sampler = SubsetRandomSampler(val_indices)
 
     # Data loaders
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=True, num_workers=4)
-    val_loader = DataLoader(validation_set, batch_size=64, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_set, batch_size=64, num_workers=4, sampler=train_sampler)
+    val_loader = DataLoader(train_set, batch_size=64, num_workers=4, sampler=val_sampler)
     test_loader = DataLoader(test_set, batch_size=64, shuffle=False, num_workers=4)
     model.train_model([train_loader, val_loader, test_loader], device)
 

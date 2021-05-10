@@ -4,7 +4,7 @@ import math
 
 def count_acc(y_hat, label):
     pred = torch.argmax(y_hat, dim=1)
-    return (pred == label).type(torch.cuda.FloatTensor).mean().item()
+    return (pred == label).type(torch.cuda.FloatTensor)
 
 
 def compute_out_size(num_layers, k_size, p, s, p_k=2, p_s=2):
