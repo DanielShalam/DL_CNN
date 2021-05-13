@@ -2,6 +2,10 @@ import torch
 import math
 
 
+def num_params(layer):
+    return sum([p.numel() for p in layer.parameters()])
+
+
 def count_acc(y_hat, label):
     pred = torch.argmax(y_hat, dim=1)
     return (pred == label).type(torch.cuda.FloatTensor)

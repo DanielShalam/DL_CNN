@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     validation_split = 0.1
-
+    mode = ['f_connected', 'f_connected_b_d', 'f_conv']
     # create transformations, include resize 30x30x3
     transform = transforms.Compose([
         transforms.Resize((30, 30)),
@@ -20,8 +20,8 @@ if __name__ == '__main__':
     ])
 
     # build iterator for train and test set
-    train_set = dataset.CostumeGTSRB(root_dir='data', csv_path='Train.csv', transform=transform, train=True)
-    test_set = dataset.CostumeGTSRB(root_dir='data', csv_path='Test.csv', transform=transform, train=False)
+    train_set = dataset.CostumeGTSRB(root_dir='data', csv_path='Train.csv', transform=transform)
+    test_set = dataset.CostumeGTSRB(root_dir='data', csv_path='Test.csv', transform=transform)
 
     # train validation split
     # Creating data indices for training and validation splits:
@@ -42,7 +42,9 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_set, batch_size=64, num_workers=4, sampler=train_sampler)
     val_loader = DataLoader(train_set, batch_size=64, num_workers=4, sampler=val_sampler)
     test_loader = DataLoader(test_set, batch_size=64, shuffle=False, num_workers=4)
-    model.train_model([train_loader, val_loader, test_loader], device)
+
+    # train model according to mode
+    model.train_model([train_loader, val_loader, test_loader], device, mode='f_conv')
 
 
 
