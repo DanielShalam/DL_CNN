@@ -1,5 +1,10 @@
 import torch
 import math
+import matplotlib.pyplot as plt
+
+
+def num_params(layer):
+    return sum([p.numel() for p in layer.parameters()])
 
 
 def count_acc(y_hat, label):
@@ -11,7 +16,7 @@ def compute_out_size(num_layers, k_size, p, s, p_k=2, p_s=2):
     """ function to compute next output size. subtract by 2 because of pooling """
     out_h = 30
     out_w = 30
-    for i in range(num_layers-1):
+    for i in range(num_layers - 1):
         # for convolution
         out_h = math.floor(((out_h + 2 * p - k_size) / s) + 1)
         out_w = math.floor(((out_w + 2 * p - k_size) / s) + 1)
@@ -20,3 +25,27 @@ def compute_out_size(num_layers, k_size, p, s, p_k=2, p_s=2):
         out_w = math.floor(((out_w + - p_k) / p_s) + 1)
 
     return int(out_h), int(out_w)
+
+
+def plot_data(train_acc, val_acc, train_loss, val_loss, best_epoch):
+    # accuracy plot
+    x_axis = list(range(1, len(train_acc)+1))
+    plt.plot(x_axis, train_acc, color='g', label='Train accuracy')
+    plt.plot(x_axis, val_acc, color='r', label='Validation accuracy')
+    plt.scatter(best_epoch, val_acc[best_epoch-1], label='Epoch taken')
+    plt.legend()
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.title("Accuracy as a function of time")
+    plt.show()
+
+    # losses plot
+    plt.plot(x_axis, train_loss, color='black', label='Train loss')
+    plt.plot(x_axis, val_loss, color='brown', label='Validation loss')
+    plt.scatter(best_epoch, val_loss[best_epoch-1], label='Epoch taken')
+    plt.legend()
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title("Loss as a function of time")
+    plt.show()
+
