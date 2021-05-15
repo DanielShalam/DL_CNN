@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from utils import compute_out_size, count_acc, num_params
+from utils import compute_out_size, count_acc, num_params, plot_data
 import numpy as np
 
 # prints colors
@@ -172,31 +172,42 @@ def train_model(data, device, dropout=True, mode='f_conv'):
     """ main function, train, validate, test """
 
     train_set, val_set, test_set = data
+    all_train_acc = []
+    all_val_acc = []
+    all_train_losses = []
+    all_val_losses = []
+
     # define model params
     fe_dims = [3, 32, 32, 64]
     c_dims = [120, 80, 43]
     cross_entropy_loss = torch.nn.CrossEntropyLoss()
-    num_epochs = 30
+    max_epochs = 3
     learning_rate = 0.001
     model = ConvNet(fe_dims=fe_dims, c_dims=c_dims, dropout=dropout).to(device)
-    # initialize model weights
-    model.apply(init_weights)
-
+    model.apply(init_weights)    # initialize model weights
     print(model)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    # early stopping params
     best_val_loss = np.inf
     j_patience = 0
     patience = 5
+    early_stop = False
 
     # train loop
-    for epoch in range(num_epochs):
+    for epoch in range(max_epochs):
         # train
         train_acc, train_loss = train_loop(model=model, optimizer=optimizer, loss_fn=cross_entropy_loss, data=train_set,
                                            device=device, epoch=epoch, train=True, mode=mode)
+        all_train_acc.append(train_acc)
+        all_train_losses.append(train_loss)
 
         # validation
         val_acc, val_loss = train_loop(model=model, optimizer=optimizer, loss_fn=cross_entropy_loss, data=val_set,
                                        device=device, epoch=epoch, train=False, mode=mode)
+
+        all_val_acc.append(val_acc)
+        all_val_losses.append(val_loss)
 
         print("{}   epoch {} | train loss: {}| train accuracy: {} {}".format(CRED, epoch, train_loss, train_acc, CEND))
         print("{}   epoch {} | validation loss: {}| validation accuracy: {} {}".format(CRED, epoch, val_loss, val_acc,
@@ -206,7 +217,7 @@ def train_model(data, device, dropout=True, mode='f_conv'):
         # check for improvement in the validation loss
         if val_loss < best_val_loss:
             # update algorithm parameters
-            print(f"{CRED}Reached best loss of: {val_loss}{CEND}")
+            print(f"{CGREEN}Reached best loss of: {val_loss}{CEND}")
             best_epoch = epoch
             j_patience = 0
             best_val_loss = val_loss
@@ -217,7 +228,10 @@ def train_model(data, device, dropout=True, mode='f_conv'):
         # if the model not improve for 'patience' iterations
         if j_patience >= patience:
             model.load_state_dict(torch.load(f"models/best_model_{mode}.pt"))
+            early_stop = True
             break
 
+    if not early_stop: best_epoch = max_epochs
     test_acc = eval_test(model, test_set, device, mode)
+    plot_data(all_train_acc, all_val_acc, all_train_losses, all_val_losses, best_epoch=best_epoch)
     print(f"{CGREEN} Test set accuracy: {test_acc} {CEND}")
