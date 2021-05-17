@@ -1,6 +1,7 @@
 import torch
 import math
 import matplotlib.pyplot as plt
+from torchvision.transforms import transforms
 
 
 def num_params(layer):
@@ -29,10 +30,10 @@ def compute_out_size(num_layers, k_size, p, s, p_k=2, p_s=2):
 
 def plot_data(train_acc, val_acc, train_loss, val_loss, best_epoch):
     # accuracy plot
-    x_axis = list(range(1, len(train_acc)+1))
+    x_axis = list(range(1, len(train_acc) + 1))
     plt.plot(x_axis, train_acc, color='g', label='Train accuracy')
     plt.plot(x_axis, val_acc, color='r', label='Validation accuracy')
-    plt.scatter(best_epoch, val_acc[best_epoch-1], label='Epoch taken')
+    plt.scatter(best_epoch, val_acc[best_epoch - 1], label='Epoch taken')
     plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
@@ -42,10 +43,34 @@ def plot_data(train_acc, val_acc, train_loss, val_loss, best_epoch):
     # losses plot
     plt.plot(x_axis, train_loss, color='black', label='Train loss')
     plt.plot(x_axis, val_loss, color='brown', label='Validation loss')
-    plt.scatter(best_epoch, val_loss[best_epoch-1], label='Epoch taken')
+    plt.scatter(best_epoch, val_loss[best_epoch - 1], label='Epoch taken')
     plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title("Loss as a function of time")
     plt.show()
 
+
+# Resize, normalize and shear image
+data_shear = transforms.Compose([
+    transforms.Resize((30, 30)),
+    transforms.RandomAffine(degrees=15, shear=2),
+    transforms.ColorJitter(brightness=0.2, hue=0.4),
+    transforms.ToTensor(),
+    transforms.Normalize((0.3337, 0.3064, 0.3171), (0.2672, 0.2564, 0.2629))
+])
+
+# Resize, normalize and translate image
+data_translate = transforms.Compose([
+    transforms.Resize((30, 30)),
+    transforms.RandomAffine(degrees=15, translate=(0.1, 0.1)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.3337, 0.3064, 0.3171), (0.2672, 0.2564, 0.2629))
+])
+
+data_transform = transforms.Compose([
+        transforms.Resize((30, 30)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.3403, 0.3121, 0.3214),
+                             (0.2724, 0.2608, 0.2669))
+    ])

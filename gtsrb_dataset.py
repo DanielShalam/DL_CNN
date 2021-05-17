@@ -6,10 +6,15 @@ from PIL import Image
 
 # for test set
 class CostumeGTSRB(Dataset):
-    def __init__(self, root_dir, csv_path, transform=False):
+    def __init__(self, root_dir, csv_path, transform=False, csv_file=None):
         # load csv files
         self.root_dir = root_dir
-        self.csv_data = pd.read_csv(os.path.join(root_dir, csv_path))
+
+        if csv_file is None:
+            self.csv_data = pd.read_csv(os.path.join(root_dir, csv_path))
+        else:
+            self.csv_data = csv_file
+
         # load transform
         self.transform = transform
 
@@ -27,4 +32,4 @@ class CostumeGTSRB(Dataset):
         if self.transform:
             img = self.transform(img)
 
-        return img, label
+        return img, label, img_path
