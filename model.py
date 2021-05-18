@@ -190,7 +190,7 @@ def train_model(data, device, mode='f_conv'):
     c_dims = [120, 80, 43]
     cross_entropy_loss = torch.nn.CrossEntropyLoss()
     max_epochs = 50
-    learning_rate = 0.001
+    learning_rate = 0.0005
     step_size = 15
     model = ConvNet(fe_dims=fe_dims, c_dims=c_dims, mode=mode).to(device)
     print(f"Number of params: {count_params(model)}")
