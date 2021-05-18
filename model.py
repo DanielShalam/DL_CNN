@@ -1,7 +1,7 @@
 import torch
 from PIL import Image
 from torch import nn
-from utils import compute_out_size, count_acc, num_params, plot_data
+from utils import compute_out_size, count_acc, count_params, plot_data
 import numpy as np
 import matplotlib.pyplot as plt
 from data.hw2_labels_dictionary import classes
@@ -11,7 +11,7 @@ CRED = '\33[31m'
 CGREEN = '\33[32m'
 
 
-def conv_block(in_channels, out_channels, k_size, padding=1, batch_norm=True):
+def conv_block(in_channels, out_channels, k_size, activation, padding=1, batch_norm=True):
     """ convolutional block. perform according to batch_norm flag."""
     if batch_norm:
         bn = nn.BatchNorm2d(out_channels)
@@ -20,14 +20,14 @@ def conv_block(in_channels, out_channels, k_size, padding=1, batch_norm=True):
             nn.Conv2d(in_channels, out_channels, kernel_size=k_size, stride=(1, 1), padding=(padding, padding)),
             bn,
             nn.MaxPool2d(2),
-            nn.ReLU(),
+            activation,
             nn.Dropout2d(p=0.25)
         )
     else:
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=k_size, stride=(1, 1), padding=(padding, padding)),
             nn.MaxPool2d(2),
-            nn.ReLU()
+            activation
         )
 
 
@@ -42,11 +42,11 @@ class ConvNet(nn.Module):
         c_layers = []
         # compute size for fully connected classifier
         self.h, self.w = compute_out_size(num_layers=len(fe_dims), k_size=k_size, p=padding, s=1)
-
+        self.activation = nn.LeakyReLU(negative_slope=0.1)
         # build feature extractor layers
         for in_dim, out_dim in zip(fe_dims[:-1], fe_dims[1:]):
             fe_layers += [
-                conv_block(in_dim, out_dim, (k_size, k_size), padding=padding, batch_norm=dropout)
+                conv_block(in_dim, out_dim, (k_size, k_size), activation=self.activation, padding=padding, batch_norm=dropout)
             ]
 
         # build classifier layers
@@ -57,18 +57,17 @@ class ConvNet(nn.Module):
                 kernel_size = (self.h, self.w) if idx == 0 else (1, 1)
                 c_layers += [
                     nn.Conv2d(in_channels=in_dim, out_channels=out_dim, kernel_size=kernel_size),
-                    nn.ReLU()
+                    self.activation
                 ]
 
         # if model fully-connected
         else:
             c_layers += [nn.Flatten()]
-            self.n_params += num_params(c_layers[-1])
             dims = [fe_dims[-1] * self.h * self.w, *c_dims]
             for idx, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
                 c_layers += [
                     nn.Linear(in_dim, out_dim),
-                    nn.ReLU()
+                    self.activation
                 ]
 
         self.feature_extractor = nn.Sequential(*fe_layers)
@@ -194,6 +193,7 @@ def train_model(data, device, mode='f_conv'):
     learning_rate = 0.001
     step_size = 15
     model = ConvNet(fe_dims=fe_dims, c_dims=c_dims, mode=mode).to(device)
+    print(f"Number of params: {count_params(model)}")
     # model.apply(init_weights)    # initialize model weights
     print(model)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
