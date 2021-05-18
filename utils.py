@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from torchvision.transforms import transforms
 
 
-def num_params(layer):
-    return sum([p.numel() for p in layer.parameters()])
+def count_params(model):
+    return sum([p.numel() for p in model.parameters() if p.requires_grad])
 
 
 def count_acc(y_hat, label):
