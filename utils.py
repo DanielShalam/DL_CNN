@@ -71,8 +71,8 @@ data_translate = transforms.Compose([
 ])
 
 data_transform = transforms.Compose([
-        transforms.Resize((30, 30)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.3403, 0.3121, 0.3214),
-                             (0.2724, 0.2608, 0.2669))
-    ])
+    transforms.Resize((30, 30)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.3403, 0.3121, 0.3214),
+                         (0.2724, 0.2608, 0.2669))
+])
