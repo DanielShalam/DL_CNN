@@ -55,7 +55,9 @@ def plot_data(train_acc, val_acc, train_loss, val_loss, best_epoch):
 data_shear = transforms.Compose([
     transforms.Resize((30, 30)),
     transforms.RandomAffine(degrees=15, shear=2),
-    transforms.ColorJitter(brightness=0.2, hue=0.4),
+    transforms.ColorJitter(brightness=0.2, hue=0.05, contrast=0.2),
+    transforms.RandomRotation([-20, 20]),
+    transforms.RandomPerspective(distortion_scale=0.3),
     transforms.ToTensor(),
     transforms.Normalize((0.3337, 0.3064, 0.3171), (0.2672, 0.2564, 0.2629))
 ])
@@ -69,8 +71,8 @@ data_translate = transforms.Compose([
 ])
 
 data_transform = transforms.Compose([
-        transforms.Resize((30, 30)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.3403, 0.3121, 0.3214),
-                             (0.2724, 0.2608, 0.2669))
-    ])
+    transforms.Resize((30, 30)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.3403, 0.3121, 0.3214),
+                         (0.2724, 0.2608, 0.2669))
+])
